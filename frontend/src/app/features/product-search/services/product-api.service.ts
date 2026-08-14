@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { ProductSearchResult } from '../../core/models/product.model';
-import { mapProduct } from '../../core/utils/api-mapper.util';
+import { environment } from '../../../../environments/environment';
+import { ProductSearchResult } from '../../../core/models/product.model';
+import { mapProduct } from '../../../core/utils/api-mapper.util';
 
 @Injectable({ providedIn: 'root' })
 export class ProductApiService {

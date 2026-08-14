@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/register"
     );
 
-    @Value("${app.jwt.secret:SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!}")
+    @Value("${app.jwt.secret}")
     private String jwtSecret;
 
     @Override

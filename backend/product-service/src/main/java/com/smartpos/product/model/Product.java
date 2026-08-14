@@ -2,7 +2,7 @@ package com.smartpos.product.model;
 
 import com.smartpos.product.model.enums.ProductCategory;
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity

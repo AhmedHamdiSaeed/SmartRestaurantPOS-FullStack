@@ -25,5 +25,11 @@ eureka:
 
 app:
   jwt:
-    secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!
+    secret: ${JWT_SECRET}
     expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

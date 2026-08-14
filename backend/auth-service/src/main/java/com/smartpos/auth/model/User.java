@@ -2,8 +2,8 @@ package com.smartpos.auth.model;
 
 import com.smartpos.auth.model.enums.UserRole;
 import lombok.*;
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
