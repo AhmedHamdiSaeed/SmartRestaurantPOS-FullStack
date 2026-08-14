@@ -1,0 +1,129 @@
+<div class="offline-workspace" role="main" aria-label="Offline support demo">
+  <div class="offline-header">
+    <h1 class="offline-title">Offline Support Demo</h1>
+    <p class="text-secondary text-sm">
+      This page demonstrates how the POS handles connectivity loss gracefully.
+    </p>
+  </div>
+
+  <!-- Connection Status Card -->
+  <div class="card connection-card">
+    <h2 class="section-title">Connection Status</h2>
+    <div class="connection-display">
+      <div class="connection-icon" [class.connection-icon--offline]="!connection.isOnline()">
+        {{ connection.isOnline() ? '📶' : connection.isReconnecting() ? '🔄' : '📴' }}
+      </div>
+      <div class="connection-info">
+        <span class="connection-status" [ngStyle]="{ color: statusColor() }">
+          {{ statusLabel() }}
+        </span>
+        <span class="text-xs text-muted mt-xs">
+          {{ statusDescription() }}
+        </span>
+      </div>
+    </div>
+    <div class="connection-controls flex gap-md mt-lg">
+      <button class="btn btn-ghost flex-1" (click)="connection.simulateOffline()" id="demo-go-offline">
+        📴 Simulate Offline
+      </button>
+      <button class="btn btn-primary flex-1" (click)="connection.simulateOnline()" id="demo-go-online">
+        📶 Restore Connection
+      </button>
+    </div>
+  </div>
+
+  <!-- Queue Actions -->
+  <div class="card">
+    <h2 class="section-title">Queue Actions While Offline</h2>
+    <p class="text-secondary text-sm mb-md">
+      When offline, actions are stored locally and replayed automatically when connection is restored.
+    </p>
+    <div class="action-buttons flex gap-sm flex-wrap">
+      <button class="btn btn-ghost" (click)="simulateOrderUpdate()" id="queue-order-update">
+        📋 Queue Order Status Update
+      </button>
+      <button class="btn btn-ghost" (click)="simulatePayment()" id="queue-payment">
+        💳 Queue Payment Action
+      </button>
+      <button class="btn btn-ghost" (click)="simulateTableAssign()" id="queue-table-assign">
+        🪑 Queue Table Assignment
+      </button>
+    </div>
+  </div>
+
+  <!-- Queue Display -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-md">
+      <h2 class="section-title">Pending Queue
+        @if (queue().length > 0) {
+          <span class="queue-count">{{ queue().length }}</span>
+        }
+      </h2>
+      @if (queue().length > 0) {
+        <button class="btn btn-sm btn-danger" (click)="offlineQueue.clearQueue()" id="clear-queue">
+          Clear Queue
+        </button>
+      }
+    </div>
+
+    @if (offlineQueue.isReplaying()) {
+      <div class="replaying-indicator animate-pulse" role="status" aria-live="polite">
+        <span>🔄</span>
+        <span class="text-warning font-semibold">Replaying queued actions...</span>
+      </div>
+    }
+
+    @if (queue().length === 0) {
+      <div class="empty-queue">
+        <span class="empty-queue__icon">✅</span>
+        <span class="text-secondary text-sm">No pending actions in queue</span>
+      </div>
+    } @else {
+      <div class="queue-list" role="list" aria-label="Queued actions">
+        @for (item of queue(); track item.id) {
+          <div
+            class="queue-item"
+            [class.queue-item--replaying]="item.status === 'replaying'"
+            [class.queue-item--failed]="item.status === 'failed'"
+            role="listitem"
+            [attr.aria-label]="item.type + ' action, status: ' + item.status"
+          >
+            <div class="queue-item__icon">
+              {{ item.status === 'replaying' ? '🔄' : item.status === 'failed' ? '❌' : '⏳' }}
+            </div>
+            <div class="queue-item__info">
+              <span class="queue-item__type font-mono text-sm font-semibold">{{ getActionTitle(item.type) }}</span>
+              <span class="queue-item__details text-xs">{{ getActionDetails(item) }}</span>
+              <span class="text-xs text-muted mt-xs">{{ formatTimestamp(item.timestamp) }}</span>
+            </div>
+            <span class="queue-item__status" [ngStyle]="{ color: statusColorForItem(item.status) }">
+              {{ item.status }}
+            </span>
+            <button
+              class="btn btn-sm btn-ghost"
+              (click)="offlineQueue.removeItem(item.id)"
+              [id]="'remove-queue-' + item.id"
+              aria-label="Remove from queue"
+            >✕</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Explanation Card -->
+  <div class="card explanation-card">
+    <h2 class="section-title">How It Works</h2>
+    <div class="explanation-steps">
+      @for (step of explanationSteps; track step.title) {
+        <div class="explanation-step">
+          <div class="explanation-step__number">{{ step.number }}</div>
+          <div class="explanation-step__content">
+            <h3 class="explanation-step__title">{{ step.title }}</h3>
+            <p class="explanation-step__desc text-secondary text-sm">{{ step.desc }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

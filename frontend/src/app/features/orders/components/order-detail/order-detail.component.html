@@ -1,0 +1,176 @@
+<aside class="detail-panel animate-slideIn" role="complementary" aria-label="Order details">
+  <!-- Header -->
+  <div class="detail-panel__header">
+    <div class="flex items-center gap-md">
+      <h2 class="detail-panel__title">Order Details</h2>
+      <span class="font-mono text-brand font-bold">#{{ order.orderNumber }}</span>
+    </div>
+    <button
+      class="btn btn-icon btn-ghost"
+      (click)="close.emit()"
+      id="close-order-detail"
+      aria-label="Close order details"
+    >✕</button>
+  </div>
+
+  <div class="detail-panel__body scrollable">
+    <!-- Status timeline -->
+    <section class="detail-section" aria-labelledby="status-heading">
+      <h3 class="detail-section__title" id="status-heading">Status</h3>
+      <div class="status-timeline" role="list" aria-label="Order status timeline">
+        @for (step of statusSteps; track step; let i = $index) {
+          <div
+            class="status-step"
+            [class.status-step--active]="step === order.status"
+            [class.status-step--done]="isStepDone(step)"
+            role="listitem"
+            [attr.aria-current]="step === order.status ? 'step' : null"
+          >
+            <div class="status-step__dot"></div>
+            @if (i < statusSteps.length - 1) {
+              <div class="status-step__line"></div>
+            }
+            <span class="status-step__label">{{ statusLabel(step) }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Advance status button -->
+      @if (nextStatus) {
+        <button
+          class="btn btn-primary w-full mt-md"
+          (click)="statusChange.emit({ order, newStatus: nextStatus! })"
+          [id]="'advance-detail-' + order.id"
+        >
+          Move to {{ statusLabel(nextStatus) }} →
+        </button>
+      }
+    </section>
+
+    <!-- Customer & Channel Info -->
+    <section class="detail-section" aria-labelledby="customer-heading">
+      <h3 class="detail-section__title" id="customer-heading">Customer</h3>
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value">{{ order.customer.name }}</span>
+        </div>
+        @if (order.customer.phone) {
+          <div class="info-row">
+            <span class="info-label">Phone</span>
+            <a class="info-value text-info" [href]="'tel:' + order.customer.phone">{{ order.customer.phone }}</a>
+          </div>
+        }
+        @if (order.customer.loyaltyPoints !== undefined) {
+          <div class="info-row">
+            <span class="info-label">Loyalty</span>
+            <span class="info-value">⭐ {{ order.customer.loyaltyPoints | number }} pts</span>
+          </div>
+        }
+        <div class="info-row">
+          <span class="info-label">Channel</span>
+          <app-badge [channel]="order.channel" [label]="channelLabel"></app-badge>
+        </div>
+        @if (order.tableNumber) {
+          <div class="info-row">
+            <span class="info-label">Table</span>
+            <span class="info-value text-brand font-semibold">Table {{ order.tableNumber }}</span>
+          </div>
+        }
+        @if (order.deliveryAddress) {
+          <div class="info-row">
+            <span class="info-label">Address</span>
+            <span class="info-value text-sm">{{ order.deliveryAddress }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Order Items -->
+    <section class="detail-section" aria-labelledby="items-heading">
+      <h3 class="detail-section__title" id="items-heading">
+        Items <span class="text-muted">({{ order.items.length }})</span>
+      </h3>
+      <div class="items-list" role="list" aria-label="Order items">
+        @for (item of order.items; track item.id) {
+          <div class="item-row" role="listitem">
+            <div class="item-row__info">
+              <span class="item-row__qty">{{ item.quantity }}×</span>
+              <div class="item-row__details">
+                <span class="item-row__name">{{ item.name }}</span>
+                @if (item.allergens && item.allergens.length > 0) {
+                  <div class="item-row__allergens">
+                    @for (a of item.allergens; track a) {
+                      <span class="allergen-tag">⚠️ {{ a }}</span>
+                    }
+                  </div>
+                }
+                @if (item.notes) {
+                  <span class="item-row__notes">📝 {{ item.notes }}</span>
+                }
+              </div>
+            </div>
+            <span class="item-row__price">SAR {{ (item.price * item.quantity).toFixed(2) }}</span>
+          </div>
+        }
+      </div>
+      <!-- Totals -->
+      <div class="order-totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>SAR {{ order.subtotal.toFixed(2) }}</span>
+        </div>
+        <div class="total-row">
+          <span>VAT (15%)</span>
+          <span>SAR {{ order.tax.toFixed(2) }}</span>
+        </div>
+        <div class="total-row total-row--grand">
+          <span>Total</span>
+          <span>SAR {{ order.total.toFixed(2) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timing -->
+    <section class="detail-section" aria-labelledby="timing-heading">
+      <h3 class="detail-section__title" id="timing-heading">Timing</h3>
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">Placed</span>
+          <span class="info-value">{{ order.createdAt | timeAgo }}</span>
+        </div>
+        @if (order.estimatedReadyTime) {
+          <div class="info-row">
+            <span class="info-label">Est. Ready</span>
+            <span class="info-value" [class.text-danger]="order.isDelayed">
+              {{ order.estimatedReadyTime | timeAgo }}
+              @if (order.isDelayed) { <span class="text-danger font-semibold"> (DELAYED)</span> }
+            </span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- AI Panel — deferred until visible to reduce initial render work -->
+    <section class="detail-section" aria-labelledby="ai-heading">
+      <h3 class="detail-section__title" id="ai-heading">🤖 AI Recommendations</h3>
+      @defer (on viewport; prefetch on idle) {
+        <app-ai-panel [order]="order"></app-ai-panel>
+      } @loading (minimum 300ms) {
+        <div class="ai-defer-loading" aria-label="Loading AI recommendations">
+          <div class="ai-defer-loading__spinner">⚙️</div>
+          <span class="ai-defer-loading__text">Initialising AI…</span>
+        </div>
+      } @placeholder {
+        <div class="ai-defer-placeholder" aria-hidden="true">
+          <span>🤖</span>
+          <span>AI panel will load when visible</span>
+        </div>
+      } @error {
+        <div class="ai-defer-error" role="alert">
+          <span>⚠️ Could not load AI panel</span>
+        </div>
+      }
+    </section>
+  </div>
+</aside>

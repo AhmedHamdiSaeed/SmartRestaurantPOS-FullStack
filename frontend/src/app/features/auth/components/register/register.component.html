@@ -1,0 +1,52 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo__icon">🍽️</div>
+      <div class="auth-logo__title">Create Account</div>
+      <div class="auth-logo__sub">Join Sahm Smart POS</div>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="auth-error" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label class="form-label" for="name">Full Name</label>
+        <input id="name" class="form-input" type="text" formControlName="name" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input id="username" class="form-input" type="text" formControlName="username" autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" class="form-input" type="password" formControlName="password" autocomplete="new-password" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="role">Role</label>
+        <select id="role" class="form-select" formControlName="role">
+          @for (r of roles; track r.value) {
+            <option [value]="r.value">{{ r.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="branch">Branch</label>
+        <input id="branch" class="form-input" type="text" formControlName="branch" />
+      </div>
+
+      <button class="auth-btn" type="submit" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Creating account…' : 'Register' }}
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </div>
+  </div>
+</div>

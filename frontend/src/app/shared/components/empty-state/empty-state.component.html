@@ -1,0 +1,12 @@
+<div class="empty-state" role="status" [attr.aria-label]="title">
+  <div class="empty-state__icon" [attr.aria-hidden]="true">{{ icon }}</div>
+  <h3 class="empty-state__title">{{ title }}</h3>
+  @if (description) {
+    <p class="empty-state__desc">{{ description }}</p>
+  }
+  @if (actionLabel) {
+    <button class="btn btn-ghost mt-md" (click)="actionClick.emit()" [id]="'empty-action-' + title.replace(' ', '-').toLowerCase()">
+      {{ actionLabel }}
+    </button>
+  }
+</div>

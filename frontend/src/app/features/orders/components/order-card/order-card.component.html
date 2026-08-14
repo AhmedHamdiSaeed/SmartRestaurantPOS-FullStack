@@ -1,0 +1,92 @@
+<article
+  class="order-card"
+  [class.order-card--selected]="isSelected"
+  [class.order-card--delayed]="order.isDelayed"
+  [class.order-card--critical]="order.priority === 'critical'"
+  (click)="select.emit(order)"
+  [attr.aria-label]="'Order ' + order.orderNumber + ' from ' + order.customer.name"
+  role="button"
+  tabindex="0"
+  (keydown.enter)="select.emit(order)"
+  (keydown.space)="select.emit(order)"
+>
+  <!-- Priority indicator bar -->
+  <div class="order-card__priority-bar" [ngStyle]="priorityBarStyle"></div>
+
+  <!-- Header row -->
+  <div class="order-card__header">
+    <div class="flex items-center gap-sm">
+      <span class="order-card__number font-mono">#{{ order.orderNumber }}</span>
+      @if (order.isDelayed) {
+        <span class="order-card__delay-badge" title="Order is delayed">⏱️</span>
+      }
+    </div>
+    <div class="flex items-center gap-xs">
+      <app-badge [channel]="order.channel" [label]="channelLabel" [icon]="channelIcon"></app-badge>
+    </div>
+  </div>
+
+  <!-- Customer info -->
+  <div class="order-card__customer">
+    <span class="order-card__customer-name truncate">{{ order.customer.name }}</span>
+    @if (order.tableNumber) {
+      <span class="order-card__table">Table {{ order.tableNumber }}</span>
+    }
+  </div>
+
+  <!-- Items summary -->
+  <div class="order-card__items">
+    @for (item of displayItems; track item.id) {
+      <div class="order-card__item truncate">
+        <span class="order-card__item-qty">{{ item.quantity }}×</span>
+        <span>{{ item.name }}</span>
+      </div>
+    }
+    @if (hiddenCount > 0) {
+      <div class="order-card__more">+{{ hiddenCount }} more items</div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <div class="order-card__footer">
+    <div class="flex items-center gap-sm">
+      <app-badge [priority]="order.priority" [label]="priorityLabel" [showDot]="order.priority !== 'normal'"></app-badge>
+    </div>
+    <div class="flex items-center gap-md">
+      <span class="order-card__time text-muted text-xs">{{ order.createdAt | timeAgo }}</span>
+      <span class="order-card__total font-semibold">SAR {{ order.total.toFixed(2) }}</span>
+    </div>
+  </div>
+
+  <!-- Status progress -->
+  <div class="order-card__status-row" role="progressbar" [attr.aria-label]="'Status: ' + order.status">
+    @for (step of statusSteps; track step) {
+      <div
+        class="order-card__status-step"
+        [class.order-card__status-step--active]="step === order.status"
+        [class.order-card__status-step--done]="isStepDone(step)"
+        [attr.title]="step"
+      ></div>
+    }
+  </div>
+
+  <!-- Quick actions -->
+  <div class="order-card__actions">
+    @if (nextStatus) {
+      <button
+        class="btn btn-sm btn-primary"
+        (click)="advanceStatus.emit({ order, newStatus: nextStatus! }); $event.stopPropagation()"
+        [id]="'advance-order-' + order.id"
+      >
+        → {{ nextStatusLabel }}
+      </button>
+    }
+    <button
+      class="btn btn-sm btn-ghost"
+      (click)="viewDetails.emit(order); $event.stopPropagation()"
+      [id]="'details-order-' + order.id"
+    >
+      View
+    </button>
+  </div>
+</article>

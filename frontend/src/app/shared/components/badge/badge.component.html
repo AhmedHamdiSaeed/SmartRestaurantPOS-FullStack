@@ -1,0 +1,11 @@
+<span
+  class="badge"
+  [ngStyle]="badgeStyle"
+  [attr.aria-label]="ariaLabel"
+>
+  @if (icon) { <span class="badge-icon">{{ icon }}</span> }
+  <span>{{ label }}</span>
+  @if (showDot) {
+    <span class="badge-dot" [ngStyle]="{ background: dotColor }"></span>
+  }
+</span>

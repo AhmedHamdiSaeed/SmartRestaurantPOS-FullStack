@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/orders/**
+        - id: order-websocket
+          uri: lb:ws://ORDER-SERVICE
+          predicates:
+            - Path=/ws/orders/**
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/v1/products/**
+        - id: kitchen-service
+          uri: lb://KITCHEN-SERVICE
+          predicates:
+            - Path=/api/v1/kitchen/**
+        - id: kitchen-websocket
+          uri: lb:ws://KITCHEN-SERVICE
+          predicates:
+            - Path=/ws/kitchen/**
+        - id: ai-service
+          uri: lb://AI-SERVICE
+          predicates:
+            - Path=/api/v1/ai/**
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/v1/offline/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+app:
+  jwt:
+    secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!

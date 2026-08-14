@@ -1,0 +1,67 @@
+/* ============================================================
+   APP SHELL — Flex layout for sidebar + main area
+   ============================================================ */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Mobile nav backdrop */
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: calc(var(--z-sidebar) - 1);
+  animation: fadeIn 0.2s ease;
+}
+
+/* ============================================================
+   TABLET  641px – 1024px
+   ============================================================ */
+@media (max-width: 1024px) {
+  :root {
+    --header-height: 64px;
+    --sidebar-width: var(--sidebar-collapsed);
+  }
+}
+
+/* ============================================================
+   MOBILE  ≤ 640px
+   ============================================================ */
+@media (max-width: 640px) {
+  :root {
+    --header-height: 58px;
+    --sidebar-width: 0px;
+    --sidebar-collapsed: 0px;
+    --space-xl: 16px;
+    --space-2xl: 24px;
+  }
+
+  /* Show backdrop when nav open (class toggled on body) */
+  .mobile-nav-backdrop {
+    display: block;
+  }
+
+  .app-content {
+    padding-bottom: 72px; /* space for potential bottom nav */
+  }
+}

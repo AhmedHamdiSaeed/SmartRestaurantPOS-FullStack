@@ -1,0 +1,28 @@
+<div class="toast-container" role="region" aria-label="Notifications" aria-live="polite">
+  @for (toast of toasts(); track toast.id) {
+    <div
+      class="toast toast--{{ toast.type }} animate-slideInRight"
+      role="alert"
+      [attr.aria-atomic]="true"
+    >
+      <div class="toast__icon">{{ toastIcon(toast.type) }}</div>
+      <div class="toast__content">
+        <div class="toast__title">{{ toast.title }}</div>
+        @if (toast.message) {
+          <div class="toast__message">{{ toast.message }}</div>
+        }
+      </div>
+      <button
+        class="toast__close btn-icon"
+        (click)="dismiss(toast.id)"
+        [attr.aria-label]="'Dismiss: ' + toast.title"
+      >✕</button>
+      @if (toast.duration && toast.duration > 0) {
+        <div
+          class="toast__progress"
+          [ngStyle]="{ animationDuration: toast.duration + 'ms' }"
+        ></div>
+      }
+    </div>
+  }
+</div>

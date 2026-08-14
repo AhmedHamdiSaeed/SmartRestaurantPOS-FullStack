@@ -1,0 +1,188 @@
+<div class="search-workspace" role="main" aria-label="Product search">
+  <div class="search-header">
+    <h1 class="search-title">Product Search</h1>
+    <p class="search-subtitle text-secondary text-sm">
+      {{ searchStore.totalCount() }} products
+      @if (!searchStore.isQueryEmpty()) { matching "{{ searchStore.query() }}" }
+    </p>
+  </div>
+
+  <!-- Search input -->
+  <div class="search-input-area">
+    <div class="search-input-wrapper" [class.search-input-wrapper--open]="searchStore.isOpen()">
+      <span class="search-input__icon" aria-hidden="true">🔍</span>
+      <input
+        #searchInput
+        id="product-search-input"
+        class="input search-input"
+        type="search"
+        [placeholder]="'Search products, categories, ingredients... (' + searchStore.totalCount() + ' total)'"
+        [value]="searchStore.query()"
+        (input)="onSearchInput($event)"
+        (keydown)="onKeyDown($event)"
+        (focus)="searchStore.open()"
+        (blur)="onBlur()"
+        autocomplete="off"
+        aria-autocomplete="list"
+        [attr.aria-expanded]="searchStore.isOpen()"
+        aria-controls="search-results-list"
+        aria-label="Search products"
+      />
+      @if (searchStore.query()) {
+        <button
+          class="search-clear btn-icon"
+          (click)="clearSearch()"
+          aria-label="Clear search"
+        >✕</button>
+      }
+      @if (searchStore.isLoading()) {
+        <span class="search-loading animate-spin" aria-live="polite" aria-label="Loading results">⟳</span>
+      }
+    </div>
+
+    <!-- Keyboard hints -->
+    <div class="search-keyboard-hints text-xs text-muted" aria-hidden="true">
+      <kbd>↑↓</kbd> navigate &nbsp;
+      <kbd>Enter</kbd> select &nbsp;
+      <kbd>Esc</kbd> close
+    </div>
+  </div>
+
+  <!-- Category filters -->
+  <div class="category-filters" role="group" aria-label="Filter by category">
+    @for (cat of categories; track cat.value) {
+      <button
+        class="category-chip"
+        [class.category-chip--active]="searchStore.category() === cat.value"
+        (click)="setCategory(cat.value)"
+        [id]="'cat-filter-' + cat.value"
+        [attr.aria-pressed]="searchStore.category() === cat.value"
+      >
+        <span>{{ cat.icon }}</span>
+        <span>{{ cat.label }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Recent searches -->
+  @if (searchStore.isQueryEmpty() && searchStore.recentSearches().length > 0) {
+    <div class="recent-searches" role="region" aria-label="Recent searches">
+      <div class="flex items-center justify-between mb-sm">
+        <span class="text-xs text-muted font-semibold uppercase" style="letter-spacing:0.08em">Recent</span>
+        <button class="btn btn-sm btn-ghost" (click)="searchStore.clearRecentSearches()" id="clear-recent">
+          Clear
+        </button>
+      </div>
+      <div class="recent-list">
+        @for (recent of searchStore.recentSearches(); track recent) {
+          <button
+            class="recent-tag"
+            (click)="applyRecent(recent)"
+            [id]="'recent-' + recent.replace(' ', '-')"
+          >
+            🕐 {{ recent }}
+            <span
+              class="recent-remove"
+              (click)="removeRecent(recent, $event)"
+              role="button"
+              [attr.aria-label]="'Remove ' + recent + ' from recent searches'"
+            >✕</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Results -->
+  <div class="results-area">
+    @if (searchStore.isLoading()) {
+      <div class="results-loading">
+        @for (s of [1,2,3,4,5,6]; track s) {
+          <app-skeleton height="72px" radius="var(--radius-md)"></app-skeleton>
+        }
+      </div>
+    } @else if (!searchStore.hasResults() && !searchStore.isQueryEmpty()) {
+      <app-empty-state
+        icon="🔍"
+        title="No products found"
+        [description]="'No results for &quot;' + searchStore.query() + '&quot;. Try a different search term.'"
+        actionLabel="Clear Search"
+        (actionClick)="clearSearch()"
+      ></app-empty-state>
+    } @else if (!searchStore.hasResults()) {
+      <app-empty-state
+        icon="🍽️"
+        title="Start searching"
+        description="Type a product name, category, or ingredient to find menu items"
+      ></app-empty-state>
+    } @else {
+      <div
+        id="search-results-list"
+        class="results-list"
+        role="listbox"
+        aria-label="Search results"
+      >
+        @for (result of searchStore.results(); track result.product.id; let i = $index) {
+          <div
+            class="result-item"
+            [class.result-item--active]="searchStore.activeIndex() === i"
+            [class.result-item--unavailable]="!result.product.isAvailable"
+            role="option"
+            [attr.aria-selected]="searchStore.activeIndex() === i"
+            [attr.aria-label]="result.product.name + ', ' + result.product.category + ', SAR ' + result.product.price"
+            (click)="selectResult(result)"
+            (mouseenter)="setActiveIndex(i)"
+            [id]="'result-' + result.product.id"
+          >
+            <div class="result-item__main">
+              <div class="result-item__category-icon">{{ categoryIcon(result.product.category) }}</div>
+              <div class="result-item__info">
+                <div class="result-item__name" [innerHTML]="result.highlightedName"></div>
+                <div class="result-item__meta">
+                  <span class="result-item__category">{{ result.product.category }}</span>
+                  @if (result.product.isPopular) {
+                    <span class="result-item__popular">🔥 Popular</span>
+                  }
+                  @if (!result.product.isAvailable) {
+                    <span class="result-item__unavailable">⚠️ Unavailable</span>
+                  }
+                  @if (result.product.allergens.length > 0) {
+                    <span class="result-item__allergens">⚠️ {{ result.product.allergens.slice(0,2).join(', ') }}</span>
+                  }
+                </div>
+                <div class="result-item__tags">
+                  @for (tag of result.product.tags.slice(0, 3); track tag) {
+                    <span class="result-tag">#{{ tag }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="result-item__right">
+              <span class="result-item__price">SAR {{ result.product.price.toFixed(2) }}</span>
+              <span class="result-item__prep">~{{ result.product.preparationTime }}m</span>
+              @if (result.product.rating) {
+                <span class="result-item__rating">⭐ {{ result.product.rating }}</span>
+              }
+              <button
+                class="btn btn-sm btn-primary result-item__add-btn"
+                [class.added]="isAdded(result.product.id)"
+                (click)="addToOrder(result, $event)"
+                [id]="'add-product-' + result.product.id"
+                [disabled]="!result.product.isAvailable"
+                [attr.aria-label]="'Add ' + result.product.name + ' to order'"
+              >
+                {{ isAdded(result.product.id) ? 'Added' : 'Add' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="add-toast" [class.add-toast--visible]="lastAddedName()" role="alert" aria-live="polite">
+    <span aria-hidden="true">✅</span>
+    Added {{ lastAddedName() }} to order
+  </div>
+</div>

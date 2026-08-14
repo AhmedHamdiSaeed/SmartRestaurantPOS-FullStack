@@ -1,0 +1,120 @@
+<div class="ai-panel" role="region" aria-label="AI recommendations">
+  <!-- Header bar -->
+  <div class="ai-panel__header">
+    <div class="flex items-center gap-sm">
+      <span class="ai-icon">🤖</span>
+      <span class="ai-panel__label">AI Assistant</span>
+      @if (streamingState() === 'streaming' || streamingState() === 'loading') {
+        <span class="ai-spinner animate-spin">⟳</span>
+      }
+    </div>
+    <div class="flex items-center gap-sm">
+      @if (state()) {
+        <span class="ai-panel__status" [ngStyle]="{ color: statusColor() }">{{ statusLabel() }}</span>
+      }
+      @if (canRetry()) {
+        <button
+          class="btn btn-sm btn-ghost"
+          (click)="retry()"
+          id="ai-retry-btn"
+          aria-label="Retry AI suggestions"
+        >↺ Retry</button>
+      }
+      @if (isComplete()) {
+        <button
+          class="btn btn-sm btn-ghost"
+          (click)="refresh()"
+          id="ai-refresh-btn"
+          aria-label="Refresh AI suggestions"
+        >↺ Refresh</button>
+      }
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  @if (streamingState() === 'loading' || streamingState() === 'idle') {
+    <div class="ai-panel__loading">
+      <app-skeleton [count]="3" height="72px" gap="8px" radius="var(--radius-md)"></app-skeleton>
+    </div>
+  }
+
+  <!-- Retrying state -->
+  @if (streamingState() === 'retrying') {
+    <div class="ai-panel__retrying">
+      <div class="animate-pulse text-secondary text-sm text-center p-md">
+        🔄 Retrying... (attempt {{ retryCount() }}/3)
+      </div>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (streamingState() === 'error') {
+    <div class="ai-panel__error" role="alert">
+      <div class="ai-error-icon">⚠️</div>
+      <p class="ai-error-msg">{{ errorMessage() }}</p>
+      <button class="btn btn-sm btn-ghost mt-sm" (click)="retry()" id="ai-error-retry">
+        Try Again
+      </button>
+    </div>
+  }
+
+  <!-- Suggestions -->
+  @if (suggestions().length > 0) {
+    <div class="suggestions-list" role="list" aria-label="AI suggestions">
+      @for (suggestion of suggestions(); track suggestion.id) {
+        <div
+          class="suggestion-card animate-fadeIn"
+          [ngStyle]="suggestionStyle(suggestion)"
+          role="listitem"
+          [attr.aria-label]="suggestion.title"
+        >
+          <div class="suggestion-card__header">
+            <div class="flex items-center gap-sm">
+              <span class="suggestion-icon">{{ suggestionIcon(suggestion) }}</span>
+              <span class="suggestion-card__title">{{ suggestion.title }}</span>
+            </div>
+            <div class="flex items-center gap-sm">
+              <span class="suggestion-confidence" [attr.title]="'Confidence: ' + (suggestion.confidence * 100 | number:'1.0-0') + '%'">
+                {{ confidenceBar(suggestion.confidence) }}
+              </span>
+              <button
+                class="suggestion-dismiss"
+                (click)="dismissSuggestion(suggestion.id)"
+                [attr.aria-label]="'Dismiss: ' + suggestion.title"
+                [id]="'dismiss-suggestion-' + suggestion.id"
+              >✕</button>
+            </div>
+          </div>
+
+          <div class="suggestion-card__body">
+            <!-- Streamed message with cursor -->
+            <p class="suggestion-text">
+              {{ suggestion.streamedMessage || suggestion.message }}
+              @if (isStreaming(suggestion)) {
+                <span class="ai-cursor" aria-hidden="true"></span>
+              }
+            </p>
+          </div>
+
+          @if (suggestion.actionLabel && suggestion.streamedMessage.length > 20) {
+            <div class="suggestion-card__footer">
+              <button
+                class="btn btn-sm"
+                [ngStyle]="actionBtnStyle(suggestion)"
+                [id]="'ai-action-' + suggestion.id"
+                (click)="executeAction(suggestion)"
+              >{{ suggestion.actionLabel }}</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty state (no suggestions after load) -->
+  @if (streamingState() === 'complete' && suggestions().length === 0) {
+    <div class="ai-panel__empty text-center p-md text-muted text-sm">
+      ✅ No recommendations for this order
+    </div>
+  }
+</div>

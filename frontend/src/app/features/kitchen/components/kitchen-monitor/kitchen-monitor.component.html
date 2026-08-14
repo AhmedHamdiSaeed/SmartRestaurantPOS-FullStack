@@ -1,0 +1,143 @@
+<div class="kitchen-monitor" role="region" aria-label="Kitchen load monitor">
+  <!-- Header -->
+  <div class="monitor-header">
+    <div class="flex items-center gap-md">
+      <h2 class="monitor-title">Kitchen Monitor</h2>
+      <div class="live-badge">
+        <span class="status-dot animate-pulse" [ngStyle]="{ background: kitchenStore.alertColor() }"></span>
+        <span class="text-xs" [ngStyle]="{ color: kitchenStore.alertColor() }">
+          {{ alertLevelLabel() }}
+        </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-sm">
+      <button class="btn btn-sm btn-ghost" (click)="kitchenService.simulateRush()" id="kitchen-rush">
+        🔥 Simulate Rush
+      </button>
+      <button class="btn btn-sm btn-ghost" (click)="kitchenService.simulateCooldown()" id="kitchen-cooldown">
+        ❄️ Cool Down
+      </button>
+    </div>
+  </div>
+
+  <!-- Overall Load Gauge -->
+  <div class="overall-load" aria-label="Overall kitchen load">
+    <div class="overall-load__gauge">
+      <svg class="gauge-svg" viewBox="0 0 200 110" aria-hidden="true">
+        <!-- Background arc -->
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="var(--bg-overlay)"
+          stroke-width="16"
+          stroke-linecap="round"
+        />
+        <!-- Value arc -->
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          [attr.stroke]="kitchenStore.alertColor()"
+          stroke-width="16"
+          stroke-linecap="round"
+          [attr.stroke-dasharray]="gaugeDash()"
+          [attr.stroke-dashoffset]="0"
+          style="transition: stroke-dasharray 0.8s ease, stroke 0.5s ease;"
+        />
+        <!-- Needle -->
+        <line
+          x1="100" y1="100"
+          [attr.x2]="needleX()"
+          [attr.y2]="needleY()"
+          stroke="var(--text-primary)"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <circle cx="100" cy="100" r="5" fill="var(--text-primary)" />
+        <!-- Value text -->
+        <text x="100" y="88" text-anchor="middle" fill="var(--text-primary)" font-size="20" font-weight="800" font-family="Inter, sans-serif">
+          {{ kitchenStore.overallLoad() }}%
+        </text>
+        <text x="100" y="106" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter, sans-serif">
+          KITCHEN LOAD
+        </text>
+      </svg>
+    </div>
+
+    <div class="overall-stats">
+      <div class="overall-stat">
+        <span class="overall-stat__val">{{ kitchenStore.load()?.queueDepth ?? 0 }}</span>
+        <span class="overall-stat__label">Queue Items</span>
+      </div>
+      <div class="overall-stat">
+        <span class="overall-stat__val" [class.text-danger]="(kitchenStore.estimatedDelay()) > 0">
+          +{{ kitchenStore.estimatedDelay() }}m
+        </span>
+        <span class="overall-stat__label">Est. Delay</span>
+      </div>
+      <div class="overall-stat">
+        <span class="overall-stat__val" [ngStyle]="{ color: trendColor() }">{{ trendIcon() }}</span>
+        <span class="overall-stat__label">Trend</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load history sparkline -->
+  @if (kitchenStore.history().length > 1) {
+    <div class="sparkline-container" aria-label="Load history chart">
+      <svg [attr.viewBox]="'0 0 ' + sparklineWidth + ' 40'" class="sparkline" preserveAspectRatio="none" aria-hidden="true">
+        <polyline
+          [attr.points]="sparklinePoints()"
+          fill="none"
+          [attr.stroke]="kitchenStore.alertColor()"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <div class="sparkline-labels">
+        <span class="text-xs text-muted">{{ historyLength() }} readings</span>
+        <span class="text-xs text-muted">Now →</span>
+      </div>
+    </div>
+  }
+
+  <!-- Station cards -->
+  <div class="stations-grid" role="list" aria-label="Kitchen stations">
+    @if (!kitchenStore.load()) {
+      @for (s of [1,2,3,4,5,6]; track s) {
+        <app-skeleton height="80px" radius="var(--radius-md)"></app-skeleton>
+      }
+    } @else {
+      @for (station of kitchenStore.stationsSorted(); track station.id) {
+        <div
+          class="station-card"
+          [class.station-card--busy]="station.status === 'busy'"
+          [class.station-card--overloaded]="station.status === 'overloaded'"
+          role="listitem"
+          [attr.aria-label]="station.name + ': ' + station.currentLoad + '% load'"
+        >
+          <div class="station-card__header">
+            <span class="station-icon">{{ stationIcon(station) }}</span>
+            <span class="station-card__name">{{ station.name }}</span>
+            <span class="station-card__load" [ngStyle]="{ color: stationColor(station) }">
+              {{ station.currentLoad }}%
+            </span>
+          </div>
+          <div class="station-bar" role="progressbar" [attr.aria-valuenow]="station.currentLoad" aria-valuemin="0" aria-valuemax="100">
+            <div
+              class="station-bar__fill"
+              [ngStyle]="{
+                width: station.currentLoad + '%',
+                background: stationColor(station)
+              }"
+            ></div>
+          </div>
+          <div class="station-card__meta">
+            <span>{{ station.activeOrders }} active orders</span>
+            <span>~{{ station.avgPrepTime }}m avg</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

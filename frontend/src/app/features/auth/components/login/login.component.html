@@ -1,0 +1,38 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo__icon">🍽️</div>
+      <div class="auth-logo__title">Sahm POS</div>
+      <div class="auth-logo__sub">Sign in to your account</div>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="auth-error" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input id="username" class="form-input" type="text" formControlName="username" autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" class="form-input" type="password" formControlName="password" autocomplete="current-password" />
+      </div>
+
+      <button class="auth-btn" type="submit" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Signing in…' : 'Sign In' }}
+      </button>
+    </form>
+
+    <div class="demo-hint">
+      Demo accounts: <strong>admin / admin123</strong> (Manager) ·
+      <strong>cashier1 / pass123</strong> (Cashier)
+    </div>
+
+    <div class="auth-footer">
+      Don't have an account? <a routerLink="/register">Register</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,125 @@
+<div class="board-shell">
+  <!-- Toolbar -->
+  <div class="board-toolbar">
+    <div class="board-toolbar__left">
+      <h1 class="board-title">Live Orders</h1>
+      <div class="board-live-indicator" aria-label="Live updates active">
+        <span class="status-dot" style="background: var(--status-ready);"></span>
+        <span class="text-xs text-muted">Live</span>
+      </div>
+      <!-- Stats bar -->
+      <div class="board-stats">
+        @for (stat of statItems(); track stat.label) {
+          <div class="board-stat">
+            <span class="board-stat__value" [ngStyle]="{ color: stat.color }">{{ stat.value }}</span>
+            <span class="board-stat__label">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="board-toolbar__right">
+      <!-- Search -->
+      <div class="search-box">
+        <span class="search-box__icon">🔍</span>
+        <input
+          id="order-search"
+          class="input search-box__input"
+          type="search"
+          placeholder="Search orders..."
+          [ngModel]="ordersStore.filter().searchTerm"
+          (ngModelChange)="ordersStore.setFilter({ searchTerm: $event })"
+          aria-label="Search orders by number, customer name, or item"
+        />
+      </div>
+
+      <!-- Channel Filter -->
+      <div class="channel-filter" role="group" aria-label="Filter by channel">
+        @for (ch of channels; track ch.value) {
+          <button
+            class="btn btn-sm channel-btn"
+            [class.channel-btn--active]="ordersStore.filter().channel === ch.value"
+            (click)="ordersStore.setFilter({ channel: ch.value })"
+            [id]="'filter-channel-' + ch.value"
+          >
+            {{ ch.icon }} {{ ch.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Simulation Controls -->
+      <div class="sim-controls">
+        <button class="btn btn-sm btn-ghost" (click)="triggerNewOrder()" id="sim-new-order">
+          ➕ New Order
+        </button>
+        <button class="btn btn-sm btn-ghost" (click)="triggerLunchRush()" id="sim-lunch-rush">
+          🍽️ Rush
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board content -->
+  <div class="board-content">
+    <!-- Loading state -->
+    @if (ordersStore.isLoading()) {
+      <div class="board-loading">
+        @for (col of [1,2,3,4]; track col) {
+          <div class="kanban-col-skeleton">
+            <app-skeleton height="24px" width="120px"></app-skeleton>
+            <app-skeleton [count]="3" height="120px"></app-skeleton>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Kanban columns -->
+      <div class="kanban-board" role="main" aria-label="Order board">
+        @for (status of kanbanStatuses; track status) {
+          <div class="kanban-col" [attr.aria-label]="'Column: ' + statusLabel(status)">
+            <!-- Column header -->
+            <div class="kanban-col__header">
+              <div class="flex items-center gap-sm">
+                <span class="kanban-col__status-dot" [ngStyle]="{ background: statusColor(status) }"></span>
+                <h2 class="kanban-col__title">{{ statusLabel(status) }}</h2>
+                <span class="kanban-col__count">{{ columnOrders(status).length }}</span>
+              </div>
+              @if (status === 'received') {
+                <span class="kanban-col__badge" style="color: var(--text-brand);">New</span>
+              }
+            </div>
+
+            <!-- Orders list -->
+            <div class="kanban-col__body scrollable">
+              @if (columnOrders(status).length === 0) {
+                <app-empty-state
+                  icon="{{ emptyIcon(status) }}"
+                  title="No {{ statusLabel(status) }} orders"
+                  description="Orders will appear here in real time"
+                ></app-empty-state>
+              } @else {
+                @for (order of columnOrders(status); track order.id) {
+                  <app-order-card
+                    [order]="order"
+                    [isSelected]="ordersStore.selectedOrderId() === order.id"
+                    (select)="selectOrder($event)"
+                    (advanceStatus)="advanceOrderStatus($event)"
+                    (viewDetails)="selectOrder($event)"
+                  ></app-order-card>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Order detail panel -->
+    @if (ordersStore.selectedOrder()) {
+      <app-order-detail
+        [order]="ordersStore.selectedOrder()!"
+        (close)="ordersStore.selectOrder(null)"
+        (statusChange)="advanceOrderStatus($event)"
+      ></app-order-detail>
+    }
+  </div>
+</div>

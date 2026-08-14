@@ -1,0 +1,86 @@
+<header class="app-header" role="banner">
+  <!-- Offline banner -->
+  @if (!connection.isOnline()) {
+    <div
+      class="offline-banner"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      {{ connection.isReconnecting() ? '🔄 Reconnecting to server...' : '📴 Offline — Actions are being queued' }}
+    </div>
+  }
+
+  <div class="header-inner">
+    <!-- Left: page context -->
+    <div class="header-left">
+      <button
+        class="hamburger-btn"
+        (click)="layout.toggleMobileNav()"
+        [attr.aria-expanded]="layout.mobileNavOpen()"
+        aria-label="Toggle navigation menu"
+      >
+        ☰
+      </button>
+      <div class="header-context">
+        <span class="header-time text-muted text-sm font-mono">{{ currentTime() }}</span>
+        <span class="header-separator" aria-hidden="true">·</span>
+        <span class="header-date text-muted text-sm">{{ currentDate() }}</span>
+      </div>
+    </div>
+
+    <!-- Center: Quick Stats -->
+    <div class="header-stats" role="status" aria-label="Live dashboard stats">
+      <div class="header-stat">
+        <span class="header-stat__value">{{ ordersStore.stats().total }}</span>
+        <span class="header-stat__label">Orders Today</span>
+      </div>
+      <div class="header-stat-divider" aria-hidden="true"></div>
+      <div class="header-stat">
+        <span class="header-stat__value text-warning">{{ ordersStore.stats().preparing }}</span>
+        <span class="header-stat__label">Preparing</span>
+      </div>
+      <div class="header-stat-divider" aria-hidden="true"></div>
+      <div class="header-stat">
+        <span class="header-stat__value" [ngStyle]="{ color: kitchenStore.alertColor() }">
+          {{ kitchenStore.overallLoad() }}%
+        </span>
+        <span class="header-stat__label">Kitchen</span>
+      </div>
+      <div class="header-stat-divider" aria-hidden="true"></div>
+      <div class="header-stat">
+        <span class="header-stat__value text-success">
+          SAR {{ ordersStore.stats().totalRevenue.toFixed(0) }}
+        </span>
+        <span class="header-stat__label">Revenue</span>
+      </div>
+    </div>
+
+    <!-- Right: notifications & actions -->
+    <div class="header-right">
+      @if (ordersStore.stats().critical > 0) {
+        <div class="header-alert" role="alert" aria-live="polite">
+          <span class="header-alert__dot animate-pulse"></span>
+          <span class="text-xs text-danger font-semibold">
+            {{ ordersStore.stats().critical }} Critical
+          </span>
+        </div>
+      }
+
+      <div
+        class="header-connection"
+        [class.header-connection--offline]="!connection.isOnline()"
+        role="status"
+        [attr.aria-label]="'Connection: ' + (connection.isOnline() ? 'Online' : 'Offline')"
+      >
+        <span class="status-dot"
+          [ngStyle]="{ background: connection.isOnline() ? 'var(--text-success)' : 'var(--text-danger)' }"
+          [class.animate-pulse]="!connection.isOnline()"
+        ></span>
+        <span class="text-xs text-secondary">
+          {{ connection.isOnline() ? 'Live' : 'Offline' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</header>

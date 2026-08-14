@@ -1,0 +1,140 @@
+<aside
+  class="sidebar"
+  [class.sidebar--collapsed]="isCollapsed()"
+  [class.sidebar--mobile-open]="layout.mobileNavOpen()"
+  role="navigation"
+  aria-label="Main navigation"
+>
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="sidebar-logo__icon" aria-hidden="true">🍽️</div>
+    @if (!isCollapsed()) {
+      <div class="sidebar-logo__text">
+        <span class="sidebar-logo__brand">Sahm</span>
+        <span class="sidebar-logo__sub">Smart POS</span>
+      </div>
+    }
+    <button
+      class="sidebar-toggle btn btn-icon"
+      (click)="toggleCollapsed()"
+      [attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      id="sidebar-toggle"
+    >{{ isCollapsed() ? '›' : '‹' }}</button>
+  </div>
+
+  <!-- User Profile -->
+  <div class="sidebar-user">
+    <div class="sidebar-user__avatar" [attr.aria-label]="currentUser().name">
+      {{ currentUser().name.charAt(0) }}
+    </div>
+    @if (!isCollapsed()) {
+      <div class="sidebar-user__info">
+        <span class="sidebar-user__name truncate">{{ currentUser().name }}</span>
+        <span class="sidebar-user__role" [ngStyle]="{ color: roleColor() }">
+          {{ roleIcon() }} {{ roleLabel() }}
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Role Switcher -->
+  @if (!isCollapsed()) {
+    <div class="role-switcher" role="group" aria-label="Switch role">
+      @for (role of userRoles; track role.value) {
+        <button
+          class="role-btn"
+          [class.role-btn--active]="currentUser().role === role.value"
+          (click)="switchRole(role.value)"
+          [id]="'role-' + role.value"
+          [ngStyle]="currentUser().role === role.value ? { borderColor: role.color, color: role.color } : {}"
+          [attr.aria-pressed]="currentUser().role === role.value"
+        >
+          <span>{{ role.icon }}</span>
+          @if (!isCollapsed()) { <span class="text-xs">{{ role.label }}</span> }
+        </button>
+      }
+    </div>
+  }
+
+  <div class="sidebar-divider"></div>
+
+  <!-- Navigation Links -->
+  <nav class="sidebar-nav" aria-label="Feature navigation">
+    @for (item of navItems; track item.path) {
+      <a
+        class="sidebar-nav__item"
+        [routerLink]="item.path"
+        routerLinkActive="sidebar-nav__item--active"
+        [attr.data-tooltip]="isCollapsed() ? item.label : null"
+        [id]="'nav-' + item.id"
+        [attr.aria-label]="item.label"
+        (click)="onNavClick()"
+      >
+        <span class="sidebar-nav__icon" aria-hidden="true">{{ item.icon }}</span>
+        @if (showLabels()) {
+          <span class="sidebar-nav__label">{{ item.label }}</span>
+        }
+        @if (item.badge && item.badge() > 0) {
+          <span class="sidebar-nav__badge" [attr.aria-label]="item.badge() + ' items'">
+            {{ item.badge() }}
+          </span>
+        }
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar-spacer"></div>
+
+  <!-- Status Panel -->
+  @if (!isCollapsed()) {
+    <div class="sidebar-status">
+      <!-- Connection status -->
+      <div class="status-item">
+        <span class="status-dot"
+          [ngStyle]="{ background: connection.isOnline() ? 'var(--text-success)' : 'var(--text-danger)' }"
+          [class.animate-pulse]="connection.isReconnecting()"
+        ></span>
+        <span class="text-xs" [ngStyle]="{ color: connection.isOnline() ? 'var(--text-success)' : 'var(--text-danger)' }">
+          {{ connection.isOnline() ? 'Connected' : connection.isReconnecting() ? 'Reconnecting...' : 'Offline' }}
+        </span>
+      </div>
+
+      <!-- Offline queue -->
+      @if (offlineQueue.pendingCount() > 0) {
+        <div class="status-item" style="color: var(--text-warning)">
+          <span>⏳</span>
+          <span class="text-xs">{{ offlineQueue.pendingCount() }} queued</span>
+        </div>
+      }
+
+      <!-- Kitchen load -->
+      <div class="status-item">
+        <span class="status-dot" [ngStyle]="{ background: kitchenStore.alertColor() }"></span>
+        <span class="text-xs text-secondary">Kitchen {{ kitchenStore.overallLoad() }}%</span>
+      </div>
+
+      <!-- Offline simulation buttons -->
+      <div class="sim-offline flex gap-xs mt-sm">
+        <button class="btn btn-sm btn-ghost" style="flex:1; font-size:10px"
+          (click)="connection.simulateOffline()" id="sim-offline">
+          📴 Offline
+        </button>
+        <button class="btn btn-sm btn-ghost" style="flex:1; font-size:10px"
+          (click)="connection.simulateOnline()" id="sim-online">
+          📶 Online
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Branch info -->
+  <div class="sidebar-branch">
+    <span class="sidebar-branch__icon">🏪</span>
+    @if (!isCollapsed()) {
+      <div class="sidebar-branch__info">
+        <span class="sidebar-branch__name truncate">{{ currentUser().branch }}</span>
+        <span class="sidebar-branch__time text-xs text-muted">{{ currentTime() }}</span>
+      </div>
+    }
+  </div>
+</aside>

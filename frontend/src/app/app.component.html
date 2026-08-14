@@ -1,0 +1,19 @@
+<div class="app-shell" role="application" aria-label="Sahm Smart POS Dashboard">
+  <!-- Mobile nav backdrop -->
+  @if (layout.mobileNavOpen()) {
+    <div
+      class="mobile-nav-backdrop"
+      (click)="layout.closeMobileNav()"
+      aria-hidden="true"
+    ></div>
+  }
+  <app-sidebar></app-sidebar>
+  <div class="app-main">
+    <app-header></app-header>
+    <main class="app-content" role="main" id="main-content" tabindex="-1">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  <app-toast></app-toast>
+</div>
+

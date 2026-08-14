@@ -1,0 +1,12 @@
+<div class="skeleton-wrapper" [ngStyle]="{ gap: gap }">
+  @for (item of items; track item) {
+    <div
+      class="skeleton"
+      [ngStyle]="{
+        width: width,
+        height: height,
+        borderRadius: radius
+      }"
+    ></div>
+  }
+</div>
