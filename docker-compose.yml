@@ -216,6 +216,25 @@ services:
         condition: service_started
     restart: on-failure
 
+  reporting-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: reporting-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      REPORTING_DB_URL: jdbc:postgresql://postgres:5432/smartpos_reporting
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+
   prometheus:
     image: prom/prometheus:v2.54.0
     volumes:
