@@ -1,0 +1,23 @@
+server:
+  port: 8087
+spring:
+  application:
+    name: RESTAURANT-SERVICE
+  datasource:
+    url: ${RESTAURANT_DB_URL:jdbc:postgresql://localhost:5432/smartpos_restaurant}
+    username: ${POSTGRES_USER:smartpos}
+    password: ${POSTGRES_PASSWORD:smartpos}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

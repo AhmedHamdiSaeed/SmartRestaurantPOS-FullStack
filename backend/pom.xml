@@ -27,6 +27,10 @@
         <module>kitchen-service</module>
         <module>ai-service</module>
         <module>notification-service</module>
+        <module>restaurant-service</module>
+        <module>payment-service</module>
+        <module>inventory-service</module>
+        <module>reporting-service</module>
     </modules>
 
     <properties>

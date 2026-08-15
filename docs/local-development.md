@@ -10,9 +10,9 @@
 
 1. Copy `.env.example` to `.env` and replace the values.
 2. Run `docker compose up -d`.
-3. Verify PostgreSQL (`5432`), Redis (`6379`), and Kafka (`9092`) are healthy with `docker compose ps`.
+3. Verify PostgreSQL (`5432`), Redis (`6379`), Kafka (`9092`), the gateway (`8080`), and frontend (`4200`) with `docker compose ps`.
 
-The compose stack provisions separate PostgreSQL databases for the services that already have persistence models. Existing services continue to use H2 until their Flyway migrations are added in the domain phases; this prevents Hibernate schema generation from becoming an undocumented production schema.
+The compose stack activates the `postgres` profile for Auth, Order, Catalog, and Kitchen services. Flyway applies each service's schema before Hibernate validates it. Restaurant service is PostgreSQL-only. H2 remains available only for standalone demo development without the Compose stack.
 
 ## Build applications
 

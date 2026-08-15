@@ -17,12 +17,26 @@ public class User {
     @Id
     private String id;
 
+    @Column(nullable = true, length = 36)
+    private String tenantId;
+
     @Column(unique = true, nullable = false)
     @NotBlank
     private String username;
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = true)
+    private String email;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
 
     private String name;
 

@@ -53,6 +53,204 @@ services:
       timeout: 10s
       retries: 10
 
+  discovery-server:
+    build:
+      context: ./backend
+      args:
+        MODULE: discovery-server
+    ports:
+      - "8761:8761"
+    restart: on-failure
+
+  api-gateway:
+    build:
+      context: ./backend
+      args:
+        MODULE: api-gateway
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  auth-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      AUTH_DB_URL: jdbc:postgresql://postgres:5432/smartpos_auth
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  order-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: order-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      ORDER_DB_URL: jdbc:postgresql://postgres:5432/smartpos_order
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    restart: on-failure
+
+  product-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      CATALOG_DB_URL: jdbc:postgresql://postgres:5432/smartpos_catalog
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  kitchen-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: kitchen-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      KITCHEN_DB_URL: jdbc:postgresql://postgres:5432/smartpos_kitchen
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    restart: on-failure
+
+  restaurant-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: restaurant-service
+    environment:
+      RESTAURANT_DB_URL: jdbc:postgresql://postgres:5432/smartpos_restaurant
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  payment-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: payment-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      PAYMENT_DB_URL: jdbc:postgresql://postgres:5432/smartpos_payment
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  inventory-service:
+    build:
+      context: ./backend
+      args:
+        MODULE: inventory-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      INVENTORY_DB_URL: jdbc:postgresql://postgres:5432/smartpos_inventory
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: on-failure
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    restart: on-failure
+
 volumes:
   postgres-data:
   redis-data:
+  prometheus-data:
+  grafana-data:
