@@ -1,116 +1,103 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-import { UserRole } from '../../../../core/models/app.model';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './register.component.html',
+  imports: [CommonModule, FormsModule, RouterLink],
+  template: `
+    <div class="login-container">
+      <div class="login-card card animate-fade-in">
+        <div class="brand">
+          <h2>Create Account</h2>
+          <p class="subtitle">Join Sahm POS Platform</p>
+        </div>
+
+        @if (errorMessage) {
+          <div class="alert alert-danger">{{ errorMessage }}</div>
+        }
+
+        <form (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" [(ngModel)]="name" name="name" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" [(ngModel)]="username" name="username" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" [(ngModel)]="password" name="password" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select class="form-input" [(ngModel)]="role" name="role">
+              <option value="CASHIER">Cashier</option>
+              <option value="MANAGER">Manager</option>
+              <option value="KITCHEN">Kitchen Staff</option>
+              <option value="SUPPORT">Support</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+            {{ loading ? 'Creating...' : 'Register' }}
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Already registered? <a routerLink="/login">Sign In</a>
+        </div>
+      </div>
+    </div>
+  `,
   styles: [`
-    .auth-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-xl);
-      background:
-        radial-gradient(ellipse at 20% 20%, rgba(245,158,11,0.12) 0%, transparent 50%),
-        var(--bg-base);
-    }
-    .auth-card {
-      width: 100%;
-      max-width: 420px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-normal);
-      border-radius: var(--radius-xl);
-      padding: var(--space-2xl);
-      box-shadow: var(--shadow-xl);
-    }
-    .auth-logo { text-align: center; margin-bottom: var(--space-xl); }
-    .auth-logo__icon { font-size: 48px; }
-    .auth-logo__title { font-size: var(--text-2xl); font-weight: 800; color: var(--brand-primary); margin-top: var(--space-sm); }
-    .auth-logo__sub { color: var(--text-muted); font-size: var(--text-sm); }
-    .form-group { margin-bottom: var(--space-md); }
-    .form-label { display: block; font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-xs); }
-    .form-input, .form-select {
-      width: 100%;
-      padding: var(--space-md);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-normal);
-      border-radius: var(--radius-md);
-      color: var(--text-primary);
-      font-size: var(--text-base);
-    }
-    .auth-btn {
-      width: 100%;
-      padding: var(--space-md);
-      margin-top: var(--space-md);
-      background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
-      color: #0b0d14;
-      font-weight: 700;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-    }
-    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .auth-error {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: var(--text-danger);
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-lg);
-      font-size: var(--text-sm);
-    }
-    .auth-footer { text-align: center; margin-top: var(--space-xl); color: var(--text-muted); font-size: var(--text-sm); }
-    .auth-footer a { color: var(--brand-primary); font-weight: 600; }
-  `],
+    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-base); padding: 20px; }
+    .login-card { width: 100%; max-width: 420px; padding: 36px; }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+    .subtitle { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .btn-block { width: 100%; margin-top: 12px; padding: 12px; }
+    .alert-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 16px; }
+    .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-secondary); }
+    .auth-footer a { color: var(--brand-primary); text-decoration: none; font-weight: 600; }
+  `]
 })
 export class RegisterComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+  name = '';
+  username = '';
+  password = '';
+  role = 'CASHIER';
+  loading = false;
+  errorMessage = '';
 
-  readonly isLoading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
-
-  readonly roles: { value: UserRole; label: string }[] = [
-    { value: 'cashier', label: 'Cashier' },
-    { value: 'manager', label: 'Manager' },
-    { value: 'kitchen', label: 'Kitchen Staff' },
-    { value: 'support', label: 'Support' },
-  ];
-
-  readonly form = this.fb.nonNullable.group({
-    username: ['', [Validators.required, Validators.minLength(3)]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    name: ['', Validators.required],
-    role: ['cashier' as UserRole, Validators.required],
-    branch: ['Riyadh Main', Validators.required],
-  });
+  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (!this.username || !this.password || !this.name) return;
+    this.loading = true;
 
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    const { username, password, name, role, branch } = this.form.getRawValue();
-
-    this.auth.register({ username, password, name, role: role.toUpperCase(), branch }).subscribe({
+    this.authService.register({
+      name: this.name,
+      username: this.username,
+      password: this.password,
+      role: this.role,
+      branch: 'Riyadh Main'
+    }).subscribe({
       next: () => {
-        this.isLoading.set(false);
+        this.loading = false;
         this.router.navigate(['/orders']);
       },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message ?? 'Registration failed');
-      },
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Registration failed';
+      }
     });
   }
 }

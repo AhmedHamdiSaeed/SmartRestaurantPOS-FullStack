@@ -1,34 +1,30 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'orders', pathMatch: 'full' },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/components/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./features/auth/components/register/register.component').then(m => m.RegisterComponent)
+  },
   {
     path: 'orders',
-    loadComponent: () =>
-      import('./features/orders/components/order-board/order-board.component')
-        .then(m => m.OrderBoardComponent),
-    title: 'Live Orders — Sahm POS',
+    loadComponent: () => import('./features/orders/components/order-board/order-board.component').then(m => m.OrderBoardComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'kitchen',
-    loadComponent: () =>
-      import('./features/kitchen/components/kitchen-monitor/kitchen-monitor.component')
-        .then(m => m.KitchenMonitorComponent),
-    title: 'Kitchen Monitor — Sahm POS',
+    loadComponent: () => import('./features/kitchen/components/kitchen-monitor/kitchen-monitor.component').then(m => m.KitchenMonitorComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'search',
-    loadComponent: () =>
-      import('./features/product-search/components/product-search/product-search.component')
-        .then(m => m.ProductSearchComponent),
-    title: 'Product Search — Sahm POS',
+    loadComponent: () => import('./features/product-search/components/product-search/product-search.component').then(m => m.ProductSearchComponent),
+    canActivate: [authGuard]
   },
-  {
-    path: 'offline-demo',
-    loadComponent: () =>
-      import('./features/dashboard/components/offline-demo/offline-demo.component')
-        .then(m => m.OfflineDemoComponent),
-    title: 'Offline Support — Sahm POS',
-  },
-  { path: '**', redirectTo: 'orders' },
+  { path: '', redirectTo: 'orders', pathMatch: 'full' },
+  { path: '**', redirectTo: 'orders' }
 ];

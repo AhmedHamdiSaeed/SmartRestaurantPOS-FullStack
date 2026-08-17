@@ -1,139 +1,166 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './login.component.html',
+  imports: [CommonModule, FormsModule, RouterLink],
+  template: `
+    <div class="login-container">
+      <div class="glow-bg"></div>
+      <div class="login-card card animate-fade-in">
+        <div class="brand">
+          <span class="logo">⚡</span>
+          <h2>Sahm <span class="accent">POS</span></h2>
+          <p class="subtitle">Smart Restaurant Management Microservices</p>
+        </div>
+
+        @if (errorMessage) {
+          <div class="alert alert-danger">{{ errorMessage }}</div>
+        }
+
+        <form (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" [(ngModel)]="username" name="username" placeholder="Enter username (e.g. admin)" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" [(ngModel)]="password" name="password" placeholder="Enter password" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+            {{ loading ? 'Signing in...' : 'Sign In' }}
+          </button>
+
+          <div class="demo-hints">
+            <p><strong>Demo Logins:</strong></p>
+            <p><span>admin</span> / <span>admin123</span> (Manager)</p>
+            <p><span>cashier1</span> / <span>pass123</span> (Cashier)</p>
+          </div>
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account? <a routerLink="/register">Register</a>
+        </div>
+      </div>
+    </div>
+  `,
   styles: [`
-    .auth-page {
+    .login-container {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: var(--space-xl);
-      background:
-        radial-gradient(ellipse at 20% 20%, rgba(245,158,11,0.12) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 50%),
-        var(--bg-base);
+      position: relative;
+      background: var(--bg-base);
+      overflow: hidden;
+      padding: 20px;
     }
-    .auth-card {
+    .glow-bg {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .login-card {
       width: 100%;
       max-width: 420px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-normal);
-      border-radius: var(--radius-xl);
-      padding: var(--space-2xl);
-      box-shadow: var(--shadow-xl);
+      padding: 36px;
+      z-index: 1;
+      box-shadow: var(--shadow-lg);
     }
-    .auth-logo {
+    .brand {
       text-align: center;
-      margin-bottom: var(--space-xl);
+      margin-bottom: 28px;
     }
-    .auth-logo__icon { font-size: 48px; }
-    .auth-logo__title {
-      font-size: var(--text-2xl);
-      font-weight: 800;
-      color: var(--brand-primary);
-      margin-top: var(--space-sm);
-    }
-    .auth-logo__sub { color: var(--text-muted); font-size: var(--text-sm); }
-    .form-group { margin-bottom: var(--space-lg); }
-    .form-label {
+    .logo {
+      font-size: 40px;
       display: block;
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-xs);
+      margin-bottom: 8px;
     }
-    .form-input {
-      width: 100%;
-      padding: var(--space-md);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-normal);
-      border-radius: var(--radius-md);
+    .brand h2 {
+      font-size: 24px;
+      font-weight: 800;
       color: var(--text-primary);
-      font-size: var(--text-base);
     }
-    .form-input:focus {
-      outline: none;
-      border-color: var(--brand-primary);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+    .accent {
+      color: var(--brand-primary);
     }
-    .auth-btn {
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .btn-block {
       width: 100%;
-      padding: var(--space-md);
-      background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
-      color: #0b0d14;
-      font-weight: 700;
-      font-size: var(--text-base);
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: transform var(--transition-fast), opacity var(--transition-fast);
+      margin-top: 12px;
+      padding: 12px;
     }
-    .auth-btn:hover:not(:disabled) { transform: translateY(-1px); }
-    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .auth-error {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: var(--text-danger);
-      padding: var(--space-md);
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      padding: 10px 14px;
       border-radius: var(--radius-md);
-      margin-bottom: var(--space-lg);
-      font-size: var(--text-sm);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .demo-hints {
+      margin-top: 20px;
+      padding: 12px;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .demo-hints span {
+      color: var(--brand-primary);
+      font-family: monospace;
     }
     .auth-footer {
       text-align: center;
-      margin-top: var(--space-xl);
-      color: var(--text-muted);
-      font-size: var(--text-sm);
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
     }
-    .auth-footer a { color: var(--brand-primary); font-weight: 600; }
-    .demo-hint {
-      margin-top: var(--space-lg);
-      padding: var(--space-md);
-      background: var(--bg-surface);
-      border-radius: var(--radius-md);
-      font-size: var(--text-xs);
-      color: var(--text-muted);
-      line-height: 1.6;
+    .auth-footer a {
+      color: var(--brand-primary);
+      text-decoration: none;
+      font-weight: 600;
     }
-  `],
+  `]
 })
 export class LoginComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+  username = 'admin';
+  password = 'admin123';
+  loading = false;
+  errorMessage = '';
 
-  readonly isLoading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
-
-  readonly form = this.fb.nonNullable.group({
-    username: ['admin', Validators.required],
-    password: ['admin123', Validators.required],
-  });
+  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (!this.username || !this.password) return;
+    this.loading = true;
+    this.errorMessage = '';
 
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.auth.login(this.form.getRawValue()).subscribe({
+    this.authService.login({ username: this.username, password: this.password }).subscribe({
       next: () => {
-        this.isLoading.set(false);
+        this.loading = false;
         this.router.navigate(['/orders']);
       },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message ?? 'Invalid username or password');
-      },
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Invalid credentials or backend unavailable';
+      }
     });
   }
 }

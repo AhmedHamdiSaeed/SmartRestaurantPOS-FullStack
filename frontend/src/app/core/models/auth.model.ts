@@ -1,5 +1,3 @@
-import { UserRole } from './app.model';
-
 export interface LoginRequest {
   username: string;
   password: string;
@@ -9,11 +7,13 @@ export interface RegisterRequest {
   username: string;
   password: string;
   name: string;
-  role?: string;
-  branch?: string;
+  role: string;
+  branch: string;
 }
 
-export interface AuthUser {
+export type UserRole = 'cashier' | 'manager' | 'kitchen' | 'support';
+
+export interface CurrentUser {
   id: string;
   username: string;
   name: string;
@@ -26,5 +26,5 @@ export interface AuthResponse {
   token: string;
   tokenType: string;
   expiresIn: number;
-  user: AuthUser;
+  user: CurrentUser;
 }

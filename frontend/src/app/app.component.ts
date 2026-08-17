@@ -1,19 +1,30 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { SidebarComponent } from './features/dashboard/components/sidebar/sidebar.component';
+import { AuthService } from './core/services/auth.service';
 import { HeaderComponent } from './features/dashboard/components/header/header.component';
-import { ToastComponent } from './shared/components/toast/toast.component';
-import { LayoutService } from './core/services/layout.service';
+import { SidebarComponent } from './features/dashboard/components/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, ToastComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
+  template: `
+    @if (authService.isAuthenticated()) {
+      <div class="app-shell">
+        <app-sidebar></app-sidebar>
+        <div class="app-main">
+          <app-header></app-header>
+          <main class="app-content">
+            <router-outlet></router-outlet>
+          </main>
+        </div>
+      </div>
+    } @else {
+      <router-outlet></router-outlet>
+    }
+  `
 })
 export class AppComponent {
-  protected readonly layout = inject(LayoutService);
+  constructor(public authService: AuthService) {}
 }
