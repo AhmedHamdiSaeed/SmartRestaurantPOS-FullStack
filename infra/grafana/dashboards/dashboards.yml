@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: SmartPOS Dashboards
+    folder: SmartPOS
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

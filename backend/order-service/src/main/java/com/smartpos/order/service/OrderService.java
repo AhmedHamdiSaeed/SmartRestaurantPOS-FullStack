@@ -7,6 +7,9 @@ import com.smartpos.order.model.Order;
 import com.smartpos.order.model.OrderItem;
 import com.smartpos.order.model.enums.*;
 import com.smartpos.order.repository.OrderRepository;
+import com.smartpos.order.event.OrderEventPublisher;
+import com.smartpos.order.event.OrderCreatedEvent;
+import com.smartpos.order.event.OrderStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final OrderEventPublisher orderEventPublisher;
 
     public List<OrderResponse> getAllOrders(String channelStr, String statusStr, String priorityStr, String search) {
         OrderChannel channel = null;
@@ -101,6 +105,25 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         OrderResponse response = mapToResponse(saved);
 
+        // Publish Kafka Event
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .orderId(saved.getId())
+                .orderNumber(saved.getOrderNumber())
+                .tenantId("tenant-1") // default tenant if multi-tenancy not strictly enforced here
+                .channel(saved.getChannel() != null ? saved.getChannel().name() : null)
+                .tableNumber(saved.getTableNumber())
+                .customerName(saved.getCustomerName())
+                .total(saved.getTotal())
+                .createdAt(saved.getCreatedAt())
+                .items(saved.getItems().stream().map(item -> OrderCreatedEvent.OrderItemEvent.builder()
+                        .name(item.getName())
+                        .quantity(item.getQuantity())
+                        .category(item.getCategory())
+                        .notes(item.getNotes())
+                        .build()).collect(Collectors.toList()))
+                .build();
+        orderEventPublisher.publishOrderCreated(event);
+
         try {
             messagingTemplate.convertAndSend("/topic/orders/new", response);
         } catch (Exception ignored) {}
@@ -120,6 +143,7 @@ public class OrderService {
             throw new BadRequestException("Invalid status: " + request.getStatus());
         }
 
+        String previousStatus = order.getStatus() != null ? order.getStatus().name() : null;
         order.setStatus(newStatus);
         if (newStatus == OrderStatus.READY || newStatus == OrderStatus.COMPLETED) {
             order.setActualReadyTime(LocalDateTime.now());
@@ -130,6 +154,17 @@ public class OrderService {
 
         Order saved = orderRepository.save(order);
         OrderResponse response = mapToResponse(saved);
+
+        // Publish Kafka Event
+        OrderStatusChangedEvent event = OrderStatusChangedEvent.builder()
+                .orderId(saved.getId())
+                .orderNumber(saved.getOrderNumber())
+                .tenantId("tenant-1")
+                .previousStatus(previousStatus)
+                .newStatus(saved.getStatus().name())
+                .changedAt(LocalDateTime.now())
+                .build();
+        orderEventPublisher.publishOrderStatusChanged(event);
 
         try {
             messagingTemplate.convertAndSend("/topic/orders/status", response);

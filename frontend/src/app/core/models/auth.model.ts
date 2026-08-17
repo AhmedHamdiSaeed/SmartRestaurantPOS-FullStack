@@ -17,6 +17,8 @@ export interface CurrentUser {
   id: string;
   username: string;
   name: string;
+  email?: string;
+  tenantId?: string;
   role: UserRole;
   branch: string;
   avatar?: string;
@@ -24,6 +26,7 @@ export interface CurrentUser {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   tokenType: string;
   expiresIn: number;
   user: CurrentUser;

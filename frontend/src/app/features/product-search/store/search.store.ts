@@ -13,6 +13,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
 import { Product, ProductCategory, ProductSearchResult, SearchState } from '../../../core/models/product.model';
 import { ProductApiService } from '../services/product-api.service';
+import { MOCK_PRODUCTS } from '../data/mock-products.data';
 
 const RECENT_SEARCHES_KEY = 'sahm_pos_recent_searches';
 const MAX_RECENT = 10;

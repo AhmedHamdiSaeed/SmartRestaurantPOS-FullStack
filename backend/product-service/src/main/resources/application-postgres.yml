@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: ${CATALOG_DB_URL:jdbc:postgresql://localhost:5432/smartpos_catalog}
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USER:smartpos}
+    password: ${POSTGRES_PASSWORD:smartpos}
+  h2:
+    console:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

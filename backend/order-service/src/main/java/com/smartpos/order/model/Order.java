@@ -2,7 +2,7 @@ package com.smartpos.order.model;
 
 import com.smartpos.order.model.enums.*;
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

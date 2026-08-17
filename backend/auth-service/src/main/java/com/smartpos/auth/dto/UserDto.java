@@ -12,7 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserDto {
     private String id;
+    private String tenantId;
     private String username;
+    private String email;
+    private boolean active;
     private String name;
     private UserRole role;
     private String branch;

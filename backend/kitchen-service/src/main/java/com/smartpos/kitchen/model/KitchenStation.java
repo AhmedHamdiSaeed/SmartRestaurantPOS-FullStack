@@ -2,7 +2,7 @@ package com.smartpos.kitchen.model;
 
 import com.smartpos.kitchen.model.enums.*;
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

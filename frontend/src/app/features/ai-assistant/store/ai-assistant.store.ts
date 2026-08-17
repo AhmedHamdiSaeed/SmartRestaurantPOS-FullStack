@@ -9,7 +9,13 @@ import {
   patchState,
 } from '@ngrx/signals';
 import { computed, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
+import { catchError, delay, switchMap, take } from 'rxjs/operators';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AiAssistantState, AiStreamingState, AiSuggestion } from '../../../core/models/ai-suggestion.model';
+import { Order } from '../../../core/models/order.model';
+import { AiAssistantMockService } from '../services/ai-assistant-mock.service';
 
 interface AiStoreState {
   states: Record<string, AiAssistantState>;

@@ -1,7 +1,8 @@
 package com.smartpos.auth.dto;
 
 import lombok.Data;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Data
 public class RegisterRequest {
@@ -14,6 +15,10 @@ public class RegisterRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
+    @Email(message = "Email should be valid")
+    private String email;
+
+    private String tenantId;
     private String role;
     private String branch;
 }

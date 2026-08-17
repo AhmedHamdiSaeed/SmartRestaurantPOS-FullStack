@@ -2,7 +2,9 @@ package com.smartpos.product.model;
 
 import com.smartpos.product.model.enums.ProductCategory;
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -15,6 +17,7 @@ public class Product {
     @Id
     private String id;
 
+    private String tenantId;
     private String name;
     private String nameAr;
 
@@ -45,6 +48,14 @@ public class Product {
 
     @Builder.Default
     private Integer salesCount = 0;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductVariant> variants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductModifier> modifiers = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

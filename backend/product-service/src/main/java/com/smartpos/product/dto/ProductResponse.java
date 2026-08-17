@@ -1,19 +1,15 @@
 package com.smartpos.product.dto;
 
 import com.smartpos.product.model.enums.ProductCategory;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductResponse {
     private String id;
+    private String tenantId;
     private String name;
     private String nameAr;
     private String sku;
@@ -29,4 +25,28 @@ public class ProductResponse {
     private List<String> tags;
     private Double rating;
     private Integer salesCount;
+    private List<VariantResponse> variants;
+    private List<ModifierResponse> modifiers;
+
+    @Data
+    @Builder
+    public static class VariantResponse {
+        private String id;
+        private String name;
+        private String nameAr;
+        private Double priceAdjustment;
+        private String sku;
+        private Boolean isAvailable;
+    }
+
+    @Data
+    @Builder
+    public static class ModifierResponse {
+        private String id;
+        private String name;
+        private String nameAr;
+        private String groupName;
+        private Double price;
+        private Boolean isAvailable;
+    }
 }

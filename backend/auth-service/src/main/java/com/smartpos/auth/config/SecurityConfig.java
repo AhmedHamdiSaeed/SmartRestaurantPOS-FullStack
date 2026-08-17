@@ -21,13 +21,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
-            .headers().frameOptions().disable()
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeRequests()
-            .antMatchers("/**").permitAll();
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(
+                    "/api/v1/auth/register",
+                    "/api/v1/auth/login",
+                    "/api/v1/auth/refresh",
+                    "/actuator/**",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            );
         return http.build();
     }
 }

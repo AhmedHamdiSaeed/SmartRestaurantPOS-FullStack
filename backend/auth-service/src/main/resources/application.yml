@@ -25,5 +25,17 @@ eureka:
 
 app:
   jwt:
-    secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!
+    secret: ${JWT_SECRET:very_secret_default_jwt_key_that_is_long_enough_for_hmac256_which_is_32_bytes_long}
     expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

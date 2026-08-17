@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: ORDER-SERVICE
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   datasource:
     url: jdbc:h2:mem:orderdb
     driver-class-name: org.h2.Driver
@@ -22,3 +27,15 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
