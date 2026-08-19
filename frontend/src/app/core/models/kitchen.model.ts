@@ -1,3 +1,5 @@
+export type KitchenStationStatus = 'normal' | 'busy' | 'overloaded' | 'offline';
+
 export interface KitchenStation {
   id: string;
   name: string;
@@ -6,8 +8,8 @@ export interface KitchenStation {
   maxCapacity: number;
   activeOrders: number;
   avgPrepTime: number;
-  status: string;
-  lastUpdated: string;
+  status: KitchenStationStatus;
+  lastUpdated: string | Date;
 }
 
 export interface KitchenLoad {
@@ -16,5 +18,5 @@ export interface KitchenLoad {
   queueDepth: number;
   estimatedDelay: number;
   alertLevel: 'green' | 'yellow' | 'orange' | 'red';
-  lastUpdated: string;
+  lastUpdated: string | Date;
 }

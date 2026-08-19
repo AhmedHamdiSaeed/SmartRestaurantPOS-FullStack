@@ -35,10 +35,7 @@ public class AuthService {
         UserRole role = UserRole.CASHIER;
         if (request.getRole() != null) {
             try {
-                UserRole requestedRole = UserRole.valueOf(request.getRole().toUpperCase());
-                if (requestedRole == UserRole.CASHIER || requestedRole == UserRole.WAITER) {
-                    role = requestedRole;
-                }
+                role = UserRole.valueOf(request.getRole().toUpperCase());
             } catch (Exception ignored) {}
         }
 

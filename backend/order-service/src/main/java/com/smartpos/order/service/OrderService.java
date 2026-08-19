@@ -111,7 +111,7 @@ public class OrderService {
                 .orderNumber(saved.getOrderNumber())
                 .tenantId("tenant-1") // default tenant if multi-tenancy not strictly enforced here
                 .channel(saved.getChannel() != null ? saved.getChannel().name() : null)
-                .tableNumber(saved.getTableNumber())
+                .tableNumber(saved.getTableNumber() != null ? String.valueOf(saved.getTableNumber()) : null)
                 .customerName(saved.getCustomerName())
                 .total(saved.getTotal())
                 .createdAt(saved.getCreatedAt())

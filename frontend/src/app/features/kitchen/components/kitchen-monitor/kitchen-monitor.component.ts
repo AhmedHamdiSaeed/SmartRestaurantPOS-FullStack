@@ -27,7 +27,7 @@ import { KitchenLoad } from '../../../../core/models/kitchen.model';
             <div class="station-card card">
               <div class="station-header">
                 <h4>{{ s.name }}</h4>
-                <span class="status-badge" [class.overloaded]="s.status === 'OVERLOADED'">{{ s.status }}</span>
+                <span class="status-badge" [class.overloaded]="s.status === 'overloaded'">{{ s.status }}</span>
               </div>
               <div class="progress-bar">
                 <div class="fill" [style.width.%]="s.currentLoad" [style.background]="getLoadColor(s.currentLoad)"></div>

@@ -24,6 +24,8 @@ export interface CurrentUser {
   avatar?: string;
 }
 
+export interface AuthUser extends CurrentUser {}
+
 export interface AuthResponse {
   token: string;
   refreshToken?: string;

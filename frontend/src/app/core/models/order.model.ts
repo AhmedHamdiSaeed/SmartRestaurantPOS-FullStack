@@ -8,7 +8,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   notes?: string;
-  allergens?: string;
+  allergens?: string | string[];
   category?: string;
 }
 
@@ -21,6 +21,12 @@ export interface Order {
   customerName: string;
   customerPhone?: string;
   customerAddress?: string;
+  customer?: {
+    name: string;
+    phone?: string;
+    address?: string;
+    loyaltyPoints?: number;
+  };
   loyaltyPoints?: number;
   tableNumber?: number;
   deliveryAddress?: string;
@@ -30,9 +36,9 @@ export interface Order {
   isDelayed?: boolean;
   delayReason?: string;
   notes?: string;
-  estimatedReadyTime?: string;
-  actualReadyTime?: string;
-  createdAt: string;
-  updatedAt: string;
+  estimatedReadyTime?: string | Date;
+  actualReadyTime?: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   items: OrderItem[];
 }
