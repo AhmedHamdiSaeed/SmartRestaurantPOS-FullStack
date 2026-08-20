@@ -17,28 +17,36 @@ public class OrderEventPublisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void publishOrderCreated(OrderCreatedEvent event) {
-        CompletableFuture<SendResult<String, Object>> future =
-            kafkaTemplate.send(KafkaConfig.TOPIC_ORDERS_CREATED, event.getOrderId(), event);
-        future.whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish OrderCreatedEvent for order {}: {}", event.getOrderId(), ex.getMessage());
-            } else {
-                log.info("Published OrderCreatedEvent for order {} to partition {}",
-                    event.getOrderId(), result.getRecordMetadata().partition());
-            }
-        });
+        try {
+            CompletableFuture<SendResult<String, Object>> future =
+                kafkaTemplate.send(KafkaConfig.TOPIC_ORDERS_CREATED, event.getOrderId(), event);
+            future.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.warn("Kafka not available for OrderCreatedEvent {}: {}", event.getOrderId(), ex.getMessage());
+                } else {
+                    log.info("Published OrderCreatedEvent for order {} to partition {}",
+                        event.getOrderId(), result.getRecordMetadata().partition());
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Kafka publishing skipped for OrderCreatedEvent {}: {}", event.getOrderId(), e.getMessage());
+        }
     }
 
     public void publishOrderStatusChanged(OrderStatusChangedEvent event) {
-        CompletableFuture<SendResult<String, Object>> future =
-            kafkaTemplate.send(KafkaConfig.TOPIC_ORDERS_STATUS_CHANGED, event.getOrderId(), event);
-        future.whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish OrderStatusChangedEvent for order {}: {}", event.getOrderId(), ex.getMessage());
-            } else {
-                log.info("Published OrderStatusChangedEvent for order {} to partition {}",
-                    event.getOrderId(), result.getRecordMetadata().partition());
-            }
-        });
+        try {
+            CompletableFuture<SendResult<String, Object>> future =
+                kafkaTemplate.send(KafkaConfig.TOPIC_ORDERS_STATUS_CHANGED, event.getOrderId(), event);
+            future.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.warn("Kafka not available for OrderStatusChangedEvent {}: {}", event.getOrderId(), ex.getMessage());
+                } else {
+                    log.info("Published OrderStatusChangedEvent for order {} to partition {}",
+                        event.getOrderId(), result.getRecordMetadata().partition());
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Kafka publishing skipped for OrderStatusChangedEvent {}: {}", event.getOrderId(), e.getMessage());
+        }
     }
 }

@@ -10,13 +10,9 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-gemini:
-  api:
-    key: ${GEMINI_API_KEY:free-stub-key}
-
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /api/v1/ai/v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
 
@@ -24,11 +20,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+        include: health,info

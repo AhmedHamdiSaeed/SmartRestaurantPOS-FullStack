@@ -75,6 +75,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isPublicPath(String path) {
+        if (path.contains("/v3/api-docs") || path.contains("/swagger") || path.contains("/webjars")) {
+            return true;
+        }
         return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 

@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -30,17 +32,29 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
+    @GetMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> getStatusInfo(@PathVariable String id) {
+        OrderResponse order = orderService.getOrderById(id);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", order.getId());
+        result.put("orderNumber", order.getOrderNumber());
+        result.put("status", order.getStatus());
+        result.put("priority", order.getPriority());
+        result.put("customerName", order.getCustomerName());
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
         return ResponseEntity.ok(orderService.createOrder(request));
     }
 
-    @PatchMapping("/{id}/status")
+    @RequestMapping(value = "/{id}/status", method = {RequestMethod.PATCH, RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<OrderResponse> updateStatus(@PathVariable String id, @Valid @RequestBody OrderStatusUpdateRequest request) {
         return ResponseEntity.ok(orderService.updateStatus(id, request));
     }
 
-    @PatchMapping("/{id}/priority")
+    @RequestMapping(value = "/{id}/priority", method = {RequestMethod.PATCH, RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<OrderResponse> updatePriority(@PathVariable String id, @Valid @RequestBody OrderPriorityUpdateRequest request) {
         return ResponseEntity.ok(orderService.updatePriority(id, request));
     }

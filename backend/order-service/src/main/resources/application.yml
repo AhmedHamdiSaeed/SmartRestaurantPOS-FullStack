@@ -36,6 +36,6 @@ management:
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /api/v1/orders/v3/api-docs
   swagger-ui:
     path: /swagger-ui.html

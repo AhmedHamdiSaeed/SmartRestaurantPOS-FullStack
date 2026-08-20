@@ -32,12 +32,12 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
               @for (order of getOrdersByStatus(col.status); track order.id) {
                 <div class="order-card card animate-fade-in" (click)="selectedOrder = order">
                   <div class="card-header">
-                    <span class="order-num">{{ order.orderNumber }}</span>
+                    <span class="order-num">#{{ order.orderNumber }}</span>
                     <app-badge [color]="getChannelColor(order.channel)">{{ order.channel }}</app-badge>
                   </div>
-                  <div class="customer">{{ order.customerName }}</div>
+                  <div class="customer">{{ getCustomerDisplayName(order) }}</div>
                   <div class="card-footer">
-                    <span class="items-count">{{ order.items?.length || 0 }} items</span>
+                    <span class="items-count">{{ order.items.length || 0 }} items</span>
                     <span class="price">{{ order.total | currency:'SAR ':'symbol':'1.2-2' }}</span>
                   </div>
                   <div class="time">{{ order.createdAt | timeAgo }}</div>
@@ -57,11 +57,11 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
         <div class="modal-backdrop" (click)="selectedOrder = null">
           <div class="modal card" (click)="$event.stopPropagation()">
             <div class="modal-header">
-              <h2>Order Details - {{ selectedOrder.orderNumber }}</h2>
+              <h2>Order Details - #{{ selectedOrder.orderNumber }}</h2>
               <button class="close-btn" (click)="selectedOrder = null">✕</button>
             </div>
             <div class="modal-body">
-              <p><strong>Customer:</strong> {{ selectedOrder.customerName }}</p>
+              <p><strong>Customer:</strong> {{ getCustomerDisplayName(selectedOrder) }}</p>
               <p><strong>Status:</strong> {{ selectedOrder.status }}</p>
               <p><strong>Channel:</strong> {{ selectedOrder.channel }}</p>
               <hr />
@@ -126,13 +126,18 @@ export class OrderBoardComponent implements OnInit {
 
   ngOnInit() {
     this.loadOrders();
+    // Auto-refresh orders every 10 seconds for real-time Kanban board updates
+    setInterval(() => this.loadOrders(), 10000);
   }
 
   loadOrders() {
     this.orderService.getOrders({
       channel: this.selectedChannel,
       search: this.searchTerm
-    }).subscribe(data => this.orders = data);
+    }).subscribe({
+      next: data => this.orders = data,
+      error: err => console.error('Failed to load orders:', err)
+    });
   }
 
   setChannel(ch: string) {
@@ -141,16 +146,31 @@ export class OrderBoardComponent implements OnInit {
   }
 
   getOrdersByStatus(status: string) {
-    return this.orders.filter(o => o.status === status);
+    if (!this.orders) return [];
+    return this.orders.filter(o => o.status && o.status.toString().toUpperCase() === status.toUpperCase());
+  }
+
+  getCustomerDisplayName(order: any): string {
+    if (!order) return 'Guest';
+    return order.customerName || (order.customer && order.customer.name) || 'Guest';
   }
 
   getChannelColor(ch: string) {
-    if (ch === 'WALKIN') return '#06b6d4';
-    if (ch === 'DELIVERY') return '#8b5cf6';
+    const channelUpper = ch ? ch.toString().toUpperCase() : '';
+    if (channelUpper === 'WALKIN') return '#06b6d4';
+    if (channelUpper === 'DELIVERY') return '#8b5cf6';
     return '#10b981';
   }
 
   advanceStatus(order: Order, nextStatus: string) {
-    this.orderService.updateStatus(order.id, nextStatus).subscribe(() => this.loadOrders());
+    // Optimistic UI status transition
+    order.status = nextStatus as OrderStatus;
+    this.orderService.updateStatus(order.id, nextStatus).subscribe({
+      next: () => this.loadOrders(),
+      error: (err) => {
+        console.error('Failed to update order status:', err);
+        this.loadOrders();
+      }
+    });
   }
 }

@@ -25,6 +25,8 @@ public class DataLoader implements CommandLineRunner {
                     .role(UserRole.MANAGER)
                     .branch("Riyadh Main")
                     .avatar("👔")
+                    .active(true)
+                    .emailVerified(true)
                     .build());
 
             userRepository.save(User.builder()
@@ -34,6 +36,8 @@ public class DataLoader implements CommandLineRunner {
                     .role(UserRole.CASHIER)
                     .branch("Riyadh Main")
                     .avatar("💳")
+                    .active(true)
+                    .emailVerified(true)
                     .build());
 
             userRepository.save(User.builder()
@@ -43,6 +47,8 @@ public class DataLoader implements CommandLineRunner {
                     .role(UserRole.KITCHEN)
                     .branch("Riyadh Main")
                     .avatar("👨‍🍳")
+                    .active(true)
+                    .emailVerified(true)
                     .build());
 
             userRepository.save(User.builder()
@@ -52,6 +58,8 @@ public class DataLoader implements CommandLineRunner {
                     .role(UserRole.SUPPORT)
                     .branch("Riyadh Main")
                     .avatar("🎧")
+                    .active(true)
+                    .emailVerified(true)
                     .build());
 
             userRepository.save(User.builder()
@@ -61,6 +69,8 @@ public class DataLoader implements CommandLineRunner {
                     .role(UserRole.MANAGER)
                     .branch("Jeddah Branch")
                     .avatar("👔")
+                    .active(true)
+                    .emailVerified(true)
                     .build());
         }
     }

@@ -34,35 +34,35 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
         - id: auth-service
-          uri: lb://AUTH-SERVICE
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/auth/**
         - id: order-service
-          uri: lb://ORDER-SERVICE
+          uri: ${ORDER_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/orders/**
         - id: order-websocket
-          uri: lb:ws://ORDER-SERVICE
+          uri: ${ORDER_WS_URL:ws://localhost:8082}
           predicates:
             - Path=/ws/orders/**
         - id: product-service
-          uri: lb://PRODUCT-SERVICE
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/products/**
         - id: kitchen-service
-          uri: lb://KITCHEN-SERVICE
+          uri: ${KITCHEN_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/v1/kitchen/**
         - id: kitchen-websocket
-          uri: lb:ws://KITCHEN-SERVICE
+          uri: ${KITCHEN_WS_URL:ws://localhost:8084}
           predicates:
             - Path=/ws/kitchen/**
         - id: ai-service
-          uri: lb://AI-SERVICE
+          uri: ${AI_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/v1/ai/**
         - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/api/v1/offline/**
 
@@ -74,6 +74,26 @@ eureka:
 app:
   jwt:
     secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: 🔐 Auth Service
+        url: /api/v1/auth/v3/api-docs
+      - name: 📋 Order Service
+        url: /api/v1/orders/v3/api-docs
+      - name: 🍔 Product Service
+        url: /api/v1/products/v3/api-docs
+      - name: 👨‍🍳 Kitchen Service
+        url: /api/v1/kitchen/v3/api-docs
+      - name: 🤖 AI Service
+        url: /api/v1/ai/v3/api-docs
+      - name: 🔔 Notification Service
+        url: /api/v1/offline/v3/api-docs
 
 management:
   endpoints:

@@ -28,22 +28,34 @@ public class OrderService {
     private final OrderEventPublisher orderEventPublisher;
 
     public List<OrderResponse> getAllOrders(String channelStr, String statusStr, String priorityStr, String search) {
-        OrderChannel channel = null;
-        OrderStatus status = null;
-        OrderPriority priority = null;
+        OrderChannel channel = parseEnum(OrderChannel.class, channelStr);
+        OrderStatus status = parseEnum(OrderStatus.class, statusStr);
+        OrderPriority priority = parseEnum(OrderPriority.class, priorityStr);
 
-        if (channelStr != null && !channelStr.equalsIgnoreCase("all")) {
-            try { channel = OrderChannel.valueOf(channelStr.toUpperCase()); } catch (Exception ignored) {}
-        }
-        if (statusStr != null && !statusStr.equalsIgnoreCase("all")) {
-            try { status = OrderStatus.valueOf(statusStr.toUpperCase()); } catch (Exception ignored) {}
-        }
-        if (priorityStr != null && !priorityStr.equalsIgnoreCase("all")) {
-            try { priority = OrderPriority.valueOf(priorityStr.toUpperCase()); } catch (Exception ignored) {}
-        }
+        return orderRepository.findAll().stream()
+                .filter(o -> channel == null || o.getChannel() == channel)
+                .filter(o -> status == null || o.getStatus() == status)
+                .filter(o -> priority == null || o.getPriority() == priority)
+                .filter(o -> {
+                    if (search == null || search.trim().isEmpty()) return true;
+                    String s = search.toLowerCase();
+                    boolean matchNum = o.getOrderNumber() != null && o.getOrderNumber().toLowerCase().contains(s);
+                    boolean matchCust = o.getCustomerName() != null && o.getCustomerName().toLowerCase().contains(s);
+                    return matchNum || matchCust;
+                })
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 
-        return orderRepository.searchOrders(channel, status, priority, search)
-                .stream().map(this::mapToResponse).collect(Collectors.toList());
+    private <T extends Enum<T>> T parseEnum(Class<T> enumClass, String value) {
+        if (value == null || value.trim().isEmpty() || value.equalsIgnoreCase("all")) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(enumClass, value.toUpperCase());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public OrderResponse getOrderById(String id) {
