@@ -25,7 +25,7 @@ eureka:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:very_secret_default_jwt_key_that_is_long_enough_for_hmac256_which_is_32_bytes_long}
+    secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!
     expiration: 86400000
 
 management:

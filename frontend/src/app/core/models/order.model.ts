@@ -18,7 +18,7 @@ export interface Order {
   channel: OrderChannel;
   status: OrderStatus;
   priority: OrderPriority;
-  customerName: string;
+  customerName?: string;
   customerPhone?: string;
   customerAddress?: string;
   customer?: {

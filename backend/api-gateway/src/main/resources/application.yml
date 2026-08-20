@@ -4,13 +4,22 @@ server:
 spring:
   application:
     name: API-GATEWAY
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
   cloud:
     gateway:
       globalcors:
         cors-configurations:
           '[/**]':
             allowedOriginPatterns:
-              - "${CORS_ALLOWED_ORIGINS:http://localhost:4200}"
+              - "http://localhost:4200"
+              - "http://localhost:4201"
             allowedMethods:
               - GET
               - POST
@@ -21,10 +30,8 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
         - id: auth-service
           uri: lb://AUTH-SERVICE
@@ -58,22 +65,6 @@ spring:
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/v1/offline/**
-        - id: restaurant-service
-          uri: lb://RESTAURANT-SERVICE
-          predicates:
-            - Path=/api/v1/restaurants/**
-        - id: payment-service
-          uri: lb://PAYMENT-SERVICE
-          predicates:
-            - Path=/api/v1/payments/**
-        - id: inventory-service
-          uri: lb://INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/inventory/**
-        - id: reporting-service
-          uri: lb://REPORTING-SERVICE
-          predicates:
-            - Path=/api/v1/reports/**
 
 eureka:
   client:
@@ -82,7 +73,7 @@ eureka:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: SmartPOS-Secret-Key-2024-VeryLongAndSecure-256bit!!
 
 management:
   endpoints:

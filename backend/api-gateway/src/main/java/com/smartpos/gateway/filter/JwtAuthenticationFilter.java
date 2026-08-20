@@ -23,7 +23,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
             "/api/v1/auth/login",
-            "/api/v1/auth/register"
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/actuator",
+            "/v3/api-docs",
+            "/swagger-ui"
     );
 
     @Value("${app.jwt.secret}")
@@ -33,7 +37,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        if (isPublicPath(path)) {
+        if (exchange.getRequest().getMethod().name().equalsIgnoreCase("OPTIONS") || isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
